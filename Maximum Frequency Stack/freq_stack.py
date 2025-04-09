@@ -44,8 +44,8 @@ class FreqStack(object):
 
     def __init__(self):
         self.stack = Stack()
-        self.control = Queue()
-        self.frequencies = defaultdict()
+        self.control = Stack()
+        self.frequencies = defaultdict(int)
 
 
     def push(self, val):
@@ -62,16 +62,26 @@ class FreqStack(object):
         """
         if self.stack.is_empty():
             return None
+
         max_freq = max(self.frequencies.values())
+        order = Queue()
         while not self.stack.is_empty():
-            self.control.add(self.stack.pop())
-        v = Queue()
-        while not self.control.is_empty():
-            value = self.control.pop()
-            if not (self.frequencies[value] == max_freq):
-                self.stack.push(value)
+            order.add(self.stack.pop())
+
+        found_flag = False
+        value_return = None
+
+        while not order.is_empty():
+            value = order.pop()
+            if not found_flag and self.frequencies[value] == max_freq:
+                value_return = value
+                self.frequencies[value] -= 1
+                if self.frequencies[value] == 0:
+                    del self.frequencies[value]
+                found_flag = True
             else:
-                v.add(value)
-        return v.pop()
-        
-        
+                self.control.push(value)
+
+        while not self.control.is_empty():
+            self.stack.push(self.control.pop())
+        return value_return
